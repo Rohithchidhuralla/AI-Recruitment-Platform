@@ -1,0 +1,49 @@
+Python
+Java
+C
+C++
+JavaScript
+TypeScript
+HTML
+CSS
+React
+Angular
+Vue
+Node.js
+Express
+Django
+Flask
+FastAPI
+SQL
+MySQL
+PostgreSQL
+MongoDB
+SQLite
+Machine Learning
+Deep Learning
+Artificial Intelligence
+TensorFlow
+PyTorch
+Scikit-learn
+Pandas
+NumPy
+Matplotlib
+Power BI
+Excel
+Git
+GitHub
+Docker
+Kubernetes
+AWS
+Azure
+GCP
+Linux
+REST API
+Streamlit
+OpenCV
+NLP
+LLM
+LangChain
+RAG
+Gemini
+OpenAI
