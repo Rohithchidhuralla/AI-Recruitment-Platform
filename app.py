@@ -13,7 +13,8 @@ from modules.gemini_ai import GeminiAI
 from modules.database import Database
 from modules.dashboard import RecruiterDashboard
 from modules.report import ReportGenerator
-from modules.ui import load_css, hero, feature_cards
+from modules.ui import load_css, hero, feature_cards, topbar, section_title
+from modules.icons import svg
 
 # -------------------------------------------------
 # PAGE CONFIG
@@ -69,12 +70,36 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
+    current_user = st.session_state.get("user", {})
+
+    if current_user:
+
+        display_name = escape(str(current_user.get("name", "Recruiter")))
+        display_role = escape(str(current_user.get("role", "Recruiter")))
+        initials = "".join([part[0] for part in display_name.split()[:2]]).upper() or "R"
+
+        st.markdown(
+            f"""
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">{initials}</div>
+                <div>
+                    <p class="sidebar-user-name">{display_name}</p>
+                    <p class="sidebar-user-role">{display_role}</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    st.markdown('<p class="sidebar-nav-label">Navigation</p>', unsafe_allow_html=True)
+
     page = st.radio(
         "Navigation",
         [
             "🏠 Resume Screening",
             "📊 Recruiter Dashboard"
-        ]
+        ],
+        label_visibility="collapsed"
     )
 
     st.markdown("---")
@@ -91,6 +116,7 @@ with st.sidebar:
 
 if page == "📊 Recruiter Dashboard":
 
+    topbar("Recruiter Dashboard", live_label="Live pipeline")
     hero()
     feature_cards()
 
@@ -106,33 +132,36 @@ if page == "📊 Recruiter Dashboard":
 
 else:
 
+    topbar("Resume Screening", live_label="Ready to screen")
     hero()
 
-    st.markdown(
-        """
-        <div class="section-title">
-            <h2>Resume Screening</h2>
-            <p>Upload a candidate resume and paste a job description to generate ATS insights.</p>
-        </div>
-        """,
-        unsafe_allow_html=True
+    section_title(
+        "Resume Screening",
+        "Upload a candidate resume and paste a job description to generate ATS insights.",
+        icon_name="upload"
     )
 
-    upload_col, jd_col = st.columns([1, 1.25])
+    with st.container(border=True):
 
-    with upload_col:
-        uploaded_file = st.file_uploader(
-            "Upload Resume",
-            type=["pdf", "docx"],
-            help="Supported formats: PDF and DOCX"
-        )
+        upload_col, jd_col = st.columns([1, 1.25])
 
-    with jd_col:
-        job_description = st.text_area(
-            "Paste Job Description",
-            height=190,
-            placeholder="Paste the job description, required skills, and role expectations..."
-        )
+        with upload_col:
+            st.markdown(f"**{svg('file', 15)} Candidate Resume**", unsafe_allow_html=True)
+            uploaded_file = st.file_uploader(
+                "Upload Resume",
+                type=["pdf", "docx"],
+                help="Supported formats: PDF and DOCX",
+                label_visibility="collapsed"
+            )
+
+        with jd_col:
+            st.markdown(f"**{svg('briefcase', 15)} Job Description**", unsafe_allow_html=True)
+            job_description = st.text_area(
+                "Paste Job Description",
+                height=190,
+                placeholder="Paste the job description, required skills, and role expectations...",
+                label_visibility="collapsed"
+            )
 
     if uploaded_file:
 
@@ -166,14 +195,11 @@ else:
             # Resume Information
             # =====================================================
 
-            st.markdown(
-                """
-                <div class="section-title">
-                    <h2>Resume Information</h2>
-                    <p>File metadata extracted from the uploaded candidate resume.</p>
-                </div>
-                """,
-                unsafe_allow_html=True
+            section_title(
+                "Resume Information",
+                "File metadata extracted from the uploaded candidate resume.",
+                icon_name="file",
+                tone="dark"
             )
 
             col1, col2, col3 = st.columns(3)
@@ -202,14 +228,11 @@ else:
             # Candidate Information
             # =====================================================
 
-            st.markdown(
-                """
-                <div class="section-title">
-                    <h2>Candidate Details</h2>
-                    <p>Contact information and professional links detected from the resume.</p>
-                </div>
-                """,
-                unsafe_allow_html=True
+            section_title(
+                "Candidate Details",
+                "Contact information and professional links detected from the resume.",
+                icon_name="id",
+                tone="brand"
             )
 
             left, right = st.columns(2)
@@ -223,18 +246,18 @@ else:
                 st.markdown(
                     f"""
                     <div class="info-card">
-                        <h3>Contact</h3>
+                        <h3>{svg('user', 16)} Contact</h3>
                         <div class="contact-grid">
                             <div class="contact-item">
-                                <p class="contact-label">Name</p>
+                                <p class="contact-label">{svg('user', 12)} Name</p>
                                 <p class="contact-value">{name}</p>
                             </div>
                             <div class="contact-item">
-                                <p class="contact-label">Email</p>
+                                <p class="contact-label">{svg('mail', 12)} Email</p>
                                 <p class="contact-value">{email}</p>
                             </div>
                             <div class="contact-item">
-                                <p class="contact-label">Phone</p>
+                                <p class="contact-label">{svg('phone', 12)} Phone</p>
                                 <p class="contact-value">{phone}</p>
                             </div>
                         </div>
@@ -251,14 +274,14 @@ else:
                 st.markdown(
                     f"""
                     <div class="info-card">
-                        <h3>Professional Links</h3>
+                        <h3>{svg('link', 16)} Professional Links</h3>
                         <div class="contact-grid">
                             <div class="contact-item">
-                                <p class="contact-label">LinkedIn</p>
+                                <p class="contact-label">{svg('link', 12)} LinkedIn</p>
                                 <p class="contact-value">{linkedin}</p>
                             </div>
                             <div class="contact-item">
-                                <p class="contact-label">GitHub</p>
+                                <p class="contact-label">{svg('link', 12)} GitHub</p>
                                 <p class="contact-value">{github}</p>
                             </div>
                         </div>
@@ -273,14 +296,11 @@ else:
             # Skills
             # =====================================================
 
-            st.markdown(
-                """
-                <div class="section-title">
-                    <h2>Technical Skills</h2>
-                    <p>Skills detected from the candidate resume.</p>
-                </div>
-                """,
-                unsafe_allow_html=True
+            section_title(
+                "Technical Skills",
+                "Skills detected from the candidate resume.",
+                icon_name="layers",
+                tone="accent"
             )
 
             if info["skills"]:
@@ -320,24 +340,52 @@ else:
                     job_info["skills"]
                 )
 
-                st.markdown(
-                    """
-                    <div class="section-title">
-                        <h2>ATS Score</h2>
-                        <p>Resume fit based on overlap with the job description skills.</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
+                section_title(
+                    "ATS Score",
+                    "Resume fit based on overlap with the job description skills.",
+                    icon_name="target",
+                    tone="brand"
                 )
 
-                st.metric(
-                    "Resume Match",
-                    f"{ats_result['score']}%"
-                )
+                score_value = ats_result["score"]
 
-                st.progress(
-                    ats_result["score"] / 100
-                )
+                if score_value >= 85:
+                    score_tone = "var(--success)"
+                    score_word = "Excellent Match"
+                elif score_value >= 70:
+                    score_tone = "var(--warning)"
+                    score_word = "Good Match"
+                else:
+                    score_tone = "var(--danger)"
+                    score_word = "Needs Improvement"
+
+                score_col, note_col = st.columns([1, 2.2])
+
+                with score_col:
+                    st.markdown(
+                        f"""
+                        <div class="metric-card" style="align-items:center;">
+                            <div class="score-ring" style="--pct:{score_value};--ring-color:{score_tone};margin:0 auto;">
+                                <span class="score-ring-value">{score_value}%</span>
+                            </div>
+                            <p class="metric-note" style="text-align:center;margin-top:10px;">{score_word}</p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                with note_col:
+                    st.markdown(
+                        f"""
+                        <div class="metric-card" style="justify-content:center;">
+                            <p class="metric-label">Resume Match</p>
+                            <p class="metric-value" style="color:{score_tone};">{score_value}%</p>
+                            <p class="metric-note">Overlap between resume skills and job requirements</p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                    st.progress(score_value / 100)
 
                 st.divider()
                 # =====================================================
@@ -348,20 +396,13 @@ else:
 
                 with col1:
 
-                    st.markdown(
-                        """
-                        <div class="section-title">
-                            <h2>Matching Skills</h2>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                    section_title("Matching Skills", icon_name="check", tone="success")
 
                     if ats_result["matching_skills"]:
 
                         for skill in ats_result["matching_skills"]:
                             st.markdown(
-                                f'<div class="match-chip yes">Match: {escape(str(skill))}</div>',
+                                f'<div class="match-chip yes">{svg("check", 14)} {escape(str(skill))}</div>',
                                 unsafe_allow_html=True
                             )
 
@@ -370,20 +411,13 @@ else:
 
                 with col2:
 
-                    st.markdown(
-                        """
-                        <div class="section-title">
-                            <h2>Missing Skills</h2>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                    section_title("Missing Skills", icon_name="cross", tone="danger")
 
                     if ats_result["missing_skills"]:
 
                         for skill in ats_result["missing_skills"]:
                             st.markdown(
-                                f'<div class="match-chip no">Gap: {escape(str(skill))}</div>',
+                                f'<div class="match-chip no">{svg("cross", 14)} {escape(str(skill))}</div>',
                                 unsafe_allow_html=True
                             )
 
@@ -416,14 +450,11 @@ else:
                 # AI Resume Analysis
                 # =====================================================
 
-                st.markdown(
-                    """
-                    <div class="section-title">
-                        <h2>AI Resume Analysis</h2>
-                        <p>Generate a recruiter-ready AI assessment and downloadable PDF report.</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
+                section_title(
+                    "AI Resume Analysis",
+                    "Generate a recruiter-ready AI assessment and downloadable PDF report.",
+                    icon_name="sparkles",
+                    tone="brand"
                 )
 
                 if st.button("🚀 Generate AI Analysis"):
@@ -476,7 +507,8 @@ else:
                 st.text_area(
                     "Resume Content",
                     result["text"],
-                    height=400
+                    height=400,
+                    label_visibility="collapsed"
                 )
 
             # =====================================================

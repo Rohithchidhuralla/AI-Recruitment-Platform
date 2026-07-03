@@ -5,6 +5,8 @@ from modules.database import Database
 from modules.charts import Charts
 from modules.export_excel import ExcelExporter
 from modules.cards import CandidateCards
+from modules.ui import section_title, empty_state
+from modules.icons import svg
 
 
 class RecruiterDashboard:
@@ -14,20 +16,22 @@ class RecruiterDashboard:
 
     def show_dashboard(self):
 
-        st.markdown(
-            """
-            <div class="section-title">
-                <h2>Recruiter Dashboard</h2>
-                <p>Track candidate volume, ATS quality, shortlisted talent, and hiring signals.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
+        section_title(
+            "Recruiter Dashboard",
+            "Track candidate volume, ATS quality, shortlisted talent, and hiring signals.",
+            icon_name="dashboard",
+            tone="brand"
         )
 
         candidates = self.db.get_candidates()
 
         if not candidates:
-            st.info("No candidates found. Upload and score a resume to build your pipeline.")
+            empty_state(
+                "No candidates yet",
+                "Upload and score a resume on the Resume Screening page to build your pipeline.",
+                icon_name="database",
+                tone="brand"
+            )
             return
 
         charts = Charts()
@@ -57,53 +61,30 @@ class RecruiterDashboard:
 
         col1, col2, col3, col4 = st.columns(4)
 
-        with col1:
-            st.markdown(
-                f"""
-                <div class="metric-card">
-                    <p class="metric-label">Candidates</p>
-                    <p class="metric-value">{len(df)}</p>
-                    <p class="metric-note">Total profiles reviewed</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        metric_defs = [
+            (col1, "users", "brand", "Candidates", f"{len(df)}", "Total profiles reviewed"),
+            (col2, "trending", "accent", "Average ATS", f"{average_ats:.1f}%", "Mean candidate fit"),
+            (col3, "award", "warning", "Highest ATS", f"{highest_ats}%", "Best current match"),
+            (col4, "star", "success", "Shortlisted", f"{shortlisted}", "Candidates above 70%"),
+        ]
 
-        with col2:
-            st.markdown(
-                f"""
-                <div class="metric-card">
-                    <p class="metric-label">Average ATS</p>
-                    <p class="metric-value">{average_ats:.1f}%</p>
-                    <p class="metric-note">Mean candidate fit</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-        with col3:
-            st.markdown(
-                f"""
-                <div class="metric-card">
-                    <p class="metric-label">Highest ATS</p>
-                    <p class="metric-value">{highest_ats}%</p>
-                    <p class="metric-note">Best current match</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-        with col4:
-            st.markdown(
-                f"""
-                <div class="metric-card">
-                    <p class="metric-label">Shortlisted</p>
-                    <p class="metric-value">{shortlisted}</p>
-                    <p class="metric-note">Candidates above 70%</p>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        for column, icon_name, tone, label, value, note in metric_defs:
+            with column:
+                st.markdown(
+                    f"""
+                    <div class="metric-card">
+                        <div class="metric-card-top">
+                            <p class="metric-label">{label}</p>
+                            <span class="icon-tile icon-tile-{tone}">{svg(icon_name, 16)}</span>
+                        </div>
+                        <div>
+                            <p class="metric-value">{value}</p>
+                            <p class="metric-note">{note}</p>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
         st.divider()
 
@@ -111,20 +92,20 @@ class RecruiterDashboard:
         # Search
         # ===========================================
 
-        st.markdown(
-            """
-            <div class="section-title">
-                <h2>Search Candidates</h2>
-                <p>Filter the pipeline by technical skill or keyword.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
+        section_title(
+            "Search Candidates",
+            "Filter the pipeline by technical skill or keyword.",
+            icon_name="search",
+            tone="dark"
         )
 
-        search = st.text_input(
-            "Search by Skill",
-            placeholder="Try Python, SQL, Streamlit, Machine Learning..."
-        )
+        with st.container(border=True):
+
+            search = st.text_input(
+                "Search by Skill",
+                placeholder="Try Python, SQL, Streamlit, Machine Learning...",
+                label_visibility="collapsed"
+            )
 
         filtered_df = df.copy()
 
@@ -147,20 +128,25 @@ class RecruiterDashboard:
 
         candidate_cards.show(filtered_df)
 
-        st.markdown(
-            """
-            <div class="section-title">
-                <h2>Candidate Database</h2>
-                <p>Detailed table view for quick scanning and validation.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
+        section_title(
+            "Candidate Database",
+            "Detailed table view for quick scanning and validation.",
+            icon_name="database",
+            tone="dark"
         )
 
         st.dataframe(
             filtered_df,
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
+            column_config={
+                "ATS Score": st.column_config.ProgressColumn(
+                    "ATS Score",
+                    format="%d%%",
+                    min_value=0,
+                    max_value=100,
+                )
+            }
         )
 
         st.divider()
@@ -169,14 +155,11 @@ class RecruiterDashboard:
         # Top Candidate
         # ===========================================
 
-        st.markdown(
-            """
-            <div class="section-title">
-                <h2>Top Candidate</h2>
-                <p>The highest-scoring profile in the current filtered view.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
+        section_title(
+            "Top Candidate",
+            "The highest-scoring profile in the current filtered view.",
+            icon_name="award",
+            tone="warning"
         )
 
         top = filtered_df.sort_values(
@@ -196,23 +179,22 @@ class RecruiterDashboard:
         # Analytics
         # ===========================================
 
-        st.markdown(
-            """
-            <div class="section-title">
-                <h2>Recruitment Analytics</h2>
-                <p>Visualize score distribution and in-demand skill patterns.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
+        section_title(
+            "Recruitment Analytics",
+            "Visualize score distribution and in-demand skill patterns.",
+            icon_name="chart",
+            tone="accent"
         )
 
         left, right = st.columns(2)
 
         with left:
-            charts.ats_chart(candidates)
+            with st.container(border=True):
+                charts.ats_chart(candidates)
 
         with right:
-            charts.top_skills_chart(candidates)
+            with st.container(border=True):
+                charts.top_skills_chart(candidates)
 
         st.divider()
 
@@ -220,14 +202,11 @@ class RecruiterDashboard:
         # Export
         # ===========================================
 
-        st.markdown(
-            """
-            <div class="section-title">
-                <h2>Export Candidate Data</h2>
-                <p>Download the current candidate database as an Excel workbook.</p>
-            </div>
-            """,
-            unsafe_allow_html=True
+        section_title(
+            "Export Candidate Data",
+            "Download the current candidate database as an Excel workbook.",
+            icon_name="download",
+            tone="success"
         )
 
         excel_path = "reports/candidates.xlsx"

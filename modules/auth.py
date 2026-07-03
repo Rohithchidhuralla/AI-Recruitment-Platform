@@ -4,6 +4,7 @@ import streamlit as st
 
 from modules.security import Security
 from modules.user_database import UserDatabase
+from modules.icons import svg
 
 
 def hash_password(password):
@@ -46,61 +47,89 @@ class Auth:
 
     def login(self):
 
-        st.title("🔐 Recruiter Login")
+        left, center, right = st.columns([1, 1.3, 1])
 
-        email = st.text_input(
-            "Email",
-            key="login_email"
-        )
+        with center:
 
-        password = st.text_input(
-            "Password",
-            type="password",
-            key="login_password"
-        )
-
-        if st.button(
-            "Login",
-            key="login_button"
-        ):
-
-            if not email or not password:
-                st.error("Please enter your email and password.")
-                return
-
-            user = self.db.login(
-                email,
-                password
+            st.markdown(
+                f"""
+                <div class="auth-wrap">
+                    <div class="auth-logo">{svg('sparkles', 22, color='#ffffff')}</div>
+                    <h1 class="auth-title">Welcome back</h1>
+                    <p class="auth-subtitle">Sign in to your recruiter workspace to continue screening candidates.</p>
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
-            if not user:
-                st.error("Invalid email or password.")
-                return
+            with st.container(border=True):
 
-            stored_password = user[3]
+                with st.form(key="login_form", border=False):
 
-            if not Security.verify_password(
-                password,
-                stored_password
-            ):
-                st.error("Invalid email or password.")
-                return
+                    email = st.text_input(
+                        "Email",
+                        key="login_email",
+                        placeholder="you@company.com"
+                    )
 
-            st.session_state.logged_in = True
-            st.session_state.user = {
-                "id": user[0],
-                "name": user[1],
-                "email": user[2],
-                "role": user[4]
-            }
+                    password = st.text_input(
+                        "Password",
+                        type="password",
+                        key="login_password",
+                        placeholder="Enter your password"
+                    )
 
-            st.success("Login successful.")
-            st.rerun()
+                    submitted = st.form_submit_button(
+                        "Sign In",
+                        use_container_width=True
+                    )
+
+                if submitted:
+
+                    if not email or not password:
+                        st.error("Please enter your email and password.")
+                        return
+
+                    user = self.db.login(
+                        email,
+                        password
+                    )
+
+                    if not user:
+                        st.error("Invalid email or password.")
+                        return
+
+                    stored_password = user[3]
+
+                    if not Security.verify_password(
+                        password,
+                        stored_password
+                    ):
+                        st.error("Invalid email or password.")
+                        return
+
+                    st.session_state.logged_in = True
+                    st.session_state.user = {
+                        "id": user[0],
+                        "name": user[1],
+                        "email": user[2],
+                        "role": user[4]
+                    }
+
+                    st.success("Login successful. Redirecting to your workspace...")
+                    st.rerun()
+
+            st.markdown(
+                """
+                <p class="auth-foot">New to AI Recruit? Use the "Register" tab above to create an account.</p>
+                """,
+                unsafe_allow_html=True
+            )
 
     def logout(self):
 
         if st.button(
-            "Logout",
+            "🚪 Logout",
             key="logout_button"
         ):
 
