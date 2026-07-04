@@ -13,3 +13,4 @@ reportlab
 GitPython
 requests
 bcrypt
+openpyxl
